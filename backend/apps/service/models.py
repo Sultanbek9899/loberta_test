@@ -1,7 +1,8 @@
 from django.db import models
-
-# Create your models here.
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 
 class URL(models.Model):
     INTERVAL_5 = 5
@@ -15,8 +16,8 @@ class URL(models.Model):
         (INTERVAL_24, "Every 24 hours",),
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="urls")
-    url = models.URLField()
-    http_status = models.SmallIntegerField()
+    url = models.URLField(unique=True)
+    http_status = models.SmallIntegerField( null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     check_interval = models.SmallIntegerField(choices=INTERVAL_CHOICES)
@@ -28,4 +29,6 @@ class URL(models.Model):
         ordering = ["-created"]
 
     def __str__(self):
-        f"{self.url} - {self.http_status}"
+        return f"{self.url} - {self.http_status}"
+
+

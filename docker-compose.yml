@@ -1,0 +1,56 @@
+version: "3.7"
+
+services:
+  loberta:
+    container_name: loberta
+    restart: always
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    command: run
+    volumes:
+      - .:/app/
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
+    env_file:
+      - .env
+    ports:
+      - 8005:8005
+    links:
+      - db
+    depends_on:
+      - db
+      - redis
+
+  huey:
+    container_name: loberta_huey
+    restart: always
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    command: run_worker
+    env_file:
+      - .env
+    depends_on:
+      - loberta
+
+  db:
+    container_name: loberta_db
+    restart: always
+    image: postgres:12.4-alpine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+    env_file:
+      .env
+    ports:
+      - 5435:5432
+
+  redis:
+    container_name: loberta_redis
+    restart: always
+    image: redis:6.0.9-alpine
+    expose:
+      - 6379
+
+volumes:
+  postgres-data:
